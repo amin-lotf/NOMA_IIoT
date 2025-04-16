@@ -1,0 +1,78 @@
+if for_print
+    load_print_info
+else
+    load_info
+end
+metrics_list=[];
+next_fig=0;
+% save_dir="all_diff_steps";
+
+
+load_common_step_pars
+
+
+metrics_type={noma_metrics;fl_metrics};
+metrics_y_axis_labels={noma_labels;fl_labels};
+metricx_x_axis_labels=[xlabel_noma_name,xlabel_fl_name];
+choose_every=[choose_every_noma,choose_every_fl];
+key_points=[k_points_noma,k_points_fl];
+with_limits=[noma_with_limit,fl_with_limit];
+
+
+
+for type_idx=1:size(metrics_type,1)
+    next_fig=next_fig+size(metrics_list,2);
+    metrics_list=metrics_type{type_idx};
+    k_point=key_points(type_idx);
+    with_limit=with_limits(type_idx);
+    load_algo_data
+    tot_figures=cell(size(metrics_list,2));
+    x_axis_label=metricx_x_axis_labels(type_idx);
+    y_axis_labels=metrics_y_axis_labels{type_idx};
+    choose_every_step=choose_every(type_idx);
+    for i=1:size(metrics_list,2)
+        metric=metrics_list(i);
+        mean_metric_name=strcat(algo_name,'_mean',metric);
+        mean_data=eval(mean_metric_name);
+        ok_metric_name=strcat(algo_name,'_ok',metric);
+        ok_matrix=eval(ok_metric_name);
+        min_size=size(mean_data,2);
+        min_size=min(min_size,max_x_size-1);
+        
+        tot_figures{i}=figure(next_fig+i);
+        clf(tot_figures{i},'reset')
+        indices = 1:choose_every_step:min_size;
+    
+        tot_metric_name=strcat(algo_name,'_tot',metric);
+        tot_data=eval(tot_metric_name);
+        l_names=[];
+        for run=1:max_runs
+            if ok_matrix(run)==1
+                l_names=[l_names;legend_names(run+1)];
+                if with_marker
+                    plot(indices, tot_data(run,indices), markers(run+1), 'Color',  colors(run+1), 'LineStyle',lines(run+1),'Linewidth', line_size_print,  'MarkerSize', marker_size)
+                    hold on;
+                else
+                    plot(indices, tot_data(run,indices),  'Color',  colors(run+1), 'Linewidth', line_size_print,  'MarkerSize', marker_size)
+                    hold on;
+                end
+                
+            end
+        end
+        if with_mean
+            l_names=[l_names;legend_names(1)];
+            plot(indices, mean_data(indices),  markers(1),'Color',  colors(1),'LineStyle',lines(1), 'Linewidth', line_size_print,  'MarkerSize', marker_size)
+            hold on;
+        end
+        % l_names=cat(1,legend_names(2:num_runs+1),legend_names(1));
+        legend(l_names,'Interpreter','latex','Location','northoutside','FontSize', font_size_outer,'NumColumns',1);
+        xlabel({x_axis_label},'Interpreter','latex','FontSize', font_size_print);
+        ylabel({y_axis_labels(i)},'Interpreter','latex','FontSize', font_size_print);
+        set(gca,'FontSize',font_size_print)
+        ax = gca;
+        ax.XAxis.Exponent = 3;
+        grid on
+        xlim([0,min([min_size,max_x_size])])
+        set(gca,'TickLabelInterpreter','latex')
+    end
+end
