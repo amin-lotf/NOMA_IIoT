@@ -1,0 +1,96 @@
+import numpy as np
+import torch
+from general_utils import OffloadingPerformanceTracker, TxPerformanceTracker
+from ppo_joint.runner.base_ppo_runner_joint import Runner
+
+
+def _t2n(x):
+    return x.detach().cpu().numpy()
+
+
+class AlgoRunner(Runner):
+    """Runner class to perform training, evaluation. and data collection for SMAC. See parent class for details."""
+
+    def __init__(self, env):
+        super(AlgoRunner, self).__init__(env)
+
+    def run(self, logging_config):
+        episodes = int(self.num_env_steps) // self.episode_length
+        # We assume slot duration is less than a second
+        glob_step=0
+        episode=0
+        step=0
+        with (OffloadingPerformanceTracker(self.env, logging_config) as offloading_tracker):
+            with TxPerformanceTracker(self.env, logging_config) as tx_tracker:
+                self.warmup()
+                while glob_step <= self.num_env_steps:
+                    if self.use_linear_lr_decay:
+                        self.trainer.policy.lr_decay(episode, episodes)
+                    values, actions, action_log_probs, rnn_states, rnn_states_critic = self.collect(step)
+                    next_obs, next_state, avail_actions, rewards, dones, info = self.envs.step(actions,step_type=2)
+                    # tx_reward = tx_rewards[0]
+                    noma_metrics = info['noma_metrics']
+                    if noma_metrics is not None:
+                        tx_tracker.record_performance(noma_metrics, np.mean(rewards))
+                    offloading_metrics = info['offloading_metrics']
+                    if offloading_metrics is not None:
+                        offloading_tracker.record_performance(offloading_metrics, rewards[0])
+                    data = next_obs, next_state, rewards, dones, avail_actions, values, actions.cpu().numpy(), action_log_probs, rnn_states, rnn_states_critic
+                    # insert data into offloading_buffer
+                    self.insert(data)
+                    step+=1
+                    if step==self.episode_length:
+                        step=0
+                        self.compute()
+                        train_infos = self.train()
+                        episode+=1
+                        if episode % self.save_interval == 0 or episode == episodes - 1:
+                            self.save_model()
+                            train_infos["average_episode_rewards"] = np.mean(
+                                self.buffer.rewards) * self.episode_length
+                            # self.writer.add_scalar("tx_episode_rewards", train_infos["average_episode_rewards"], glob_step)
+                            # computing_tracker.record_ppo_metrics(train_infos["policy_loss"], train_infos["value_loss"],
+                            #                                      train_infos["average_episode_rewards"])
+                            print(
+                               f" Time slot: {self.env.cur_timeslot}, average Tx episode rewards: {train_infos['average_episode_rewards']}")
+                    glob_step+=1
+                print('End of the simulation!')
+
+    def warmup(self):
+        step_type= 2
+        obs,state,available_action,_ = self.envs.reset(step_type=step_type)
+        buffer = self.buffer
+        buffer.obs[0] = torch.as_tensor(obs).to(self.device)
+        buffer.state[0] = torch.as_tensor(state).to(self.device)
+        buffer.available_actions[0] = torch.as_tensor(available_action).to(self.device)
+
+
+    @torch.no_grad()
+    def collect(self, step):
+        trainer = self.trainer
+        buffer = self.buffer
+        n_agents = self.num_agents
+        trainer.prep_rollout()
+        values, actions, action_log_probs, rnn_states, _, rnn_states_critic \
+            = trainer.policy.get_actions(self.merge(buffer.obs[step]),
+                                                                    self.merge(buffer.state[step]),
+                                                                    self.merge(buffer.rnn_states[step]),
+                                                                    self.merge(buffer.rnn_states_critic[step]),
+                                                                    self.merge(buffer.masks[step]),
+                                                                    self.merge(buffer.available_actions[step])
+                                                                    )
+        values=self.unmerge(values,n_agents)
+        actions=self.unmerge(actions,n_agents)
+        action_log_probs=self.unmerge(action_log_probs,n_agents)
+        rnn_states=self.unmerge(rnn_states,n_agents)
+        rnn_states_critic=self.unmerge(rnn_states_critic,n_agents)
+        return values, actions, action_log_probs, rnn_states, rnn_states_critic
+
+
+
+    def insert(self, data):
+        buffer = self.buffer
+        obs,next_state, rewards, dones, available_actions, values, actions, action_log_probs, rnn_states, rnn_states_critic = data
+        masks = dones == False
+        buffer.insert(obs, next_state, rnn_states, rnn_states_critic, actions, action_log_probs, values, rewards,
+                                      masks, available_actions=available_actions)

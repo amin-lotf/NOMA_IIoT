@@ -1,0 +1,19 @@
+{
+  "tx_power_weight" : 0.3,
+  "testing_env": false,
+  "slot_duration": 0.1,
+  "coherence_time" : 1.0,
+  "n_sbs": 4,
+  "max_training_devices" : 4,
+  "noma_min_req_devices" : 4,
+  "fl_min_req_devices" : 9,
+  "channel_buffer_size": 1000,
+  "power_quant": 100,
+  "quantization_buffer" : 1,
+  "diff_power_weight" : 1,
+  "drop_penalty": -10,
+  "delay_sensitivity_factor": 0.2,
+  "computing_drop_weight": 1,
+  "ep_weight": 1,
+  "history_size": 10
+}

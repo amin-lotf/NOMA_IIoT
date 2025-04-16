@@ -1,0 +1,22 @@
+{
+  "carrier_frequency": 28e9,
+  "bandwidth": 20,
+  "num_sc": 4,
+  "sc_capacity": 3,
+  "es_capacity": 10,
+  "max_allocated_power_fraction": 0.1,
+  "decimal_round": 7,
+  "max_data_rate": 50,
+  "tot_users": 15,
+  "min_users": 10,
+  "max_users": 10,
+  "tx_power": 46,
+  "noise_variance": -174,
+  "static_power": 1,
+  "default_alpha": 0.9,
+  "default_beta": 1,
+  "min_computing_power": 30e9,
+  "max_computing_power": 49e9,
+  "cpu_coefficient": 1e-27,
+  "tolerable_power" : -10
+}

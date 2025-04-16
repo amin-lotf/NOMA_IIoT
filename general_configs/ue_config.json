@@ -1,0 +1,15 @@
+{
+  "tx_power": 33,
+  "static_power": 0.5,
+  "min_computing_power": 1.5e9,
+   "max_computing_power":2.5e9,
+   "cpu_coefficient":1e-27,
+   "computing_energy":2,
+  "min_task_size": 1,
+  "max_task_size": 3,
+ "task_power": 0.297e9,
+ "task_deadline":25,
+ "task_arrival_probability":0.6,
+ "task_type_probability":0.3,
+  "bg_arrival_prob": 1
+}
