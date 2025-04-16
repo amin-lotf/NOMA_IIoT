@@ -1,7 +1,6 @@
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
-logging_config.json
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
@@ -10,7 +9,6 @@ logging_config.json
 .idea/**/shelf
 .DS_Store
 runs/
-results/
 # AWS User-specific
 .idea/**/aws.xml
 requirements2.txt
