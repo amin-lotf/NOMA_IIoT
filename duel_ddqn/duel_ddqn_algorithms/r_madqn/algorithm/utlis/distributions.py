@@ -40,10 +40,10 @@ class LinearDuelingDQN(nn.Module):
         self.fc = nn.Sequential(
             Linear(num_inputs, num_inputs),
             nn.ReLU(),
-            Linear(num_inputs, num_outputs)
+            Linear(num_inputs, 1)
         )
 
-        self.fc_adv = Linear(num_inputs, 1)
+        self.fc_adv = Linear(num_inputs, num_outputs)
 
 
 
