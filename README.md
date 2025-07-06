@@ -1,5 +1,25 @@
-Overview This repository contains code for a simulation framework that implements multi-agent deep reinforcement learning for task offloading and resource allocation.
+@ARTICLE{11060652,
 
+  author={Lotfolahi, Amin and Ferng, Huei-Wen},
+
+  journal={IEEE Transactions on Network Science and Engineering}, 
+  
+title={DRL-Based Resource Allocation in NOMA-Aided Industrial IoT Towards Energy Productivity Maximization}, 
+  
+year={2025},
+  
+volume={},
+  
+number={},
+  
+pages={1-16},
+  
+keywords={Resource management;Industrial Internet of Things;Delays;NOMA;Computational modeling;Training;Optimization;Recurrent neural networks;Multitasking;Energy consumption;Task Offloading;Industrial Internet of Things (IIoT);Mobile Edge Computing (MEC);Multi-Agent Proximal Policy Optimization (MAPPO);Non-Orthogonal Multiple Access (NOMA);Resource Allocation},
+  
+doi={10.1109/TNSE.2025.3584786}}
+
+
+Overview This repository contains code for a simulation framework that implements multi-agent deep reinforcement learning for task offloading and resource allocation.
 Repository Structure 
 
 ### env_models/
